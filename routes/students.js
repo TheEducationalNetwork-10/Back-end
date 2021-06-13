@@ -418,6 +418,11 @@ router.post("/changepassword/:studentID", async (req, res) => {
 
 });
 
+
+// Create Posts
+
+
+
 // // Update personal information
 // router.post("/update/personalinformation/:customerID", async (req, res) => {
 
