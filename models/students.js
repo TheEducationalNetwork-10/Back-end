@@ -61,8 +61,21 @@ const StudentsSchema = new mongoose.Schema({
     phoneNumber: {
         type: String,
         required: true
-    }
-    // OnlinePresence: OnlinePresence.schema
+    },
+    friends: [                             // Contains all friends including the ones whom I have requested
+        {
+            studentID: { type: String },
+            status: { type: String }
+        }],
+    friendRequests: [                             // Contains all friends including the ones whom I have requested
+        {
+            studentID: { type: String }
+        }],
+    requestsSent: [                             // Contains all friends including the ones whom I have requested
+        {
+            studentID: { type: String }
+        }],
+
 }, { timestamps: true });
 
 

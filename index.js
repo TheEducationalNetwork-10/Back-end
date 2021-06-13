@@ -32,7 +32,6 @@ require('dotenv').config();
 // Importing the routes
 const students = require('./routes/students');
 const postsRoute = require('./routes/posts');
-// const kitchenRoute = require('./routes/kitchen');
 
 // middle wares
 app.use(express.json());
@@ -43,7 +42,6 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/api/students', students);
 app.use('/api/posts', postsRoute);
-// app.use('/api/kitchen', kitchenRoute);
 
 
 // Connection to mongo atlas 

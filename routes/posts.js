@@ -5,8 +5,7 @@ const router = express.Router();
 const Students = require('../models/students');
 
 const Posts = require('../models/posts');
-
-const { nanoid } = require("nanoid");
+const students = require('../models/students');
 
 
 // ----> Handling Routes
@@ -20,6 +19,8 @@ router.post("/create/:studentID", async (req, res) => {
 
             const post = new Posts({
                 studentID: req.params.studentID,
+                firstName: student.firstName,
+                lastName: student.lastName,
                 postBody: req.body.postBody,
                 attachment: req.body.attachment
             });

@@ -418,10 +418,285 @@ router.post("/changepassword/:studentID", async (req, res) => {
 
 });
 
+// Send Friend Request
+router.post("/sendrequest/:studentID/:requestedStudentID", async (req, res) => {
 
-// Create Posts
+    await Students.findById(req.params.studentID).then(async student => {
+
+        if (student) {
+
+            const findStudentRequested = Students.findById(req.params.requestedStudentID);
+
+            if (!findStudentRequested) {
+                res.status(400).json({ message: "Requested student was not found" });
+                return;
+            }
+
+            const findUserInFriendRequest = await Students.find(
+                {
+                    _id: req.params.requestedStudentID,
+                    friendRequests: { $elemMatch: { studentID: req.params.studentID } }
+                }
+            );
+
+            const findUserInFriends = await Students.find(
+                {
+                    _id: req.params.requestedStudentID,
+                    friends: { $elemMatch: { studentID: req.params.studentID } }
+                }
+            );
+
+            const findUserInRequestsSent = await Students.find(
+                {
+                    _id: req.params.requestedStudentID,
+                    requestsSent: { $elemMatch: { studentID: req.params.studentID } }
+                }
+            );
+
+            if (findUserInFriendRequest.length > 0) {
+
+                res.status(400).json({ message: "You have already sent request" });
+                return;
+            }
+
+            if (findUserInFriends.length > 0) {
+
+                res.status(400).json({ message: "You are already friend with the requested user" });
+                return;
+            }
+
+            if (findUserInRequestsSent.length > 0) {
+
+                res.status(400).json({ message: "Requested user has already send you friend request, Please check your friend requests" });
+                return;
+            }
 
 
+            try {
+
+                // To save info in requested students requests array
+                const saveInfoRequestedStudent = await Students.findOneAndUpdate(
+                    { _id: req.params.requestedStudentID },
+                    { $push: { friendRequests: { studentID: req.params.studentID } } }
+                );
+
+                // To save info in students friends array
+                const saveInfoStudent = await Students.findOneAndUpdate(
+                    { _id: req.params.studentID },
+                    { $push: { requestsSent: { studentID: req.params.requestedStudentID } } }
+                );
+
+                res.status(200).json({ message: "Friend Request Sent Successfully" });
+
+            } catch (error) {
+                res.status(400).json({ message: error.message });
+
+            }
+
+            return;
+        }
+        res.status(404).json({ message: "Student was not found" });
+        return;
+    }).catch((error) => {
+        res.status(500).json({ message: "Something went wrong" });
+
+    })
+
+});
+
+// Approve Friend Request
+router.post("/approverequest/:studentID/:toApproveStudentID", async (req, res) => {
+
+    await Students.findById(req.params.studentID).then(async student => {
+
+        if (student) {
+
+            const findStudentRequested = Students.findById(req.params.toApproveStudentID);
+
+            if (!findStudentRequested) {
+                res.status(400).json({ message: "Requested student was not found" });
+                return;
+            }
+
+            const friendRequestExists = await Students.find(
+                { _id: req.params.studentID },
+                { friendRequests: { $elemMatch: { studentID: req.params.toApproveStudentID } } }
+            );
+
+            if (!friendRequestExists) {
+                res.status(400).json({ message: "Friend request not found" });
+                return;
+            }
+
+            const findUserInFriends = await Students.find(
+                {
+                    _id: req.params.studentID,
+                    friends: { $elemMatch: { studentID: req.params.toApproveStudentID } }
+                }
+            );
+
+            if (findUserInFriends.length > 0) {
+                res.status(400).json({ message: "You are already friends" });
+                return;
+            }
+
+
+
+            try {
+
+                // To save info in requested students friends array
+                const saveInfoRequestedStudentrequestsSent = await Students.findOneAndUpdate(
+                    { _id: req.params.toApproveStudentID },
+                    { $pull: { requestsSent: { studentID: req.params.studentID } } });
+
+                const saveInfoRequestedStudentfriends = await Students.findOneAndUpdate(
+                    { _id: req.params.toApproveStudentID },
+                    { $push: { friends: { studentID: req.params.studentID } } }
+                );
+
+
+                // To save info in students friends/friendRequests array
+                const saveInfoStudentfriendRequests = await Students.findOneAndUpdate(
+                    { _id: req.params.studentID },
+                    { $pull: { friendRequests: { studentID: req.params.toApproveStudentID } } }
+                );
+
+                const saveInfoStudentfriends = await Students.findOneAndUpdate(
+                    { _id: req.params.studentID },
+                    { $push: { friends: { studentID: req.params.toApproveStudentID } } }
+                );
+
+
+
+                res.status(200).json({ message: "Friend Request Approved Successfully" });
+
+            } catch (error) {
+                res.status(400).json({ message: error.message });
+
+            }
+
+            return;
+        }
+        res.status(404).json({ message: "Student was not found" });
+        return;
+    }).catch((error) => {
+        res.status(500).json({ message: "Something went wrong" });
+
+    })
+
+});
+
+// Delete Friend Request
+router.post("/deleterequest/:studentID/:requestedStudentID", async (req, res) => {
+
+    await Students.findById(req.params.studentID).then(async student => {
+
+        if (student) {
+
+            const findStudentRequested = Students.findById(req.params.requestedStudentID);
+
+            if (!findStudentRequested) {
+                res.status(400).json({ message: "Requested student was not found" });
+                return;
+            }
+
+            const findUserInfriendRequests = await Students.find(
+                {
+                    _id: req.params.studentID,
+                    friendRequests: { $elemMatch: { studentID: req.params.requestedStudentID } }
+                }
+            );
+
+            if (findUserInfriendRequests.length < 1) {
+                res.status(400).json({ message: "No requests found to delete" });
+                return;
+            }
+
+            try {
+
+                // To save info in requested students friends array
+                const deleteFriendRequests = await Students.findOneAndUpdate(
+                    { _id: req.params.studentID },
+                    { $pull: { 'friendRequests': { studentID: req.params.requestedStudentID } } });
+
+                // To save info in students friends array
+                const deleteRequestsSent = await Students.findOneAndUpdate(
+                    { _id: req.params.requestedStudentID },
+                    { $pull: { 'requestsSent': { studentID: req.params.studentID } } });
+
+                res.status(200).json({ message: "Friend Request Deleted Successfully" });
+
+            } catch (error) {
+                res.status(400).json({ message: error.message });
+
+            }
+
+            return;
+        }
+        res.status(404).json({ message: "Student was not found" });
+        return;
+    }).catch((error) => {
+        res.status(500).json({ message: "Something went wrong" });
+
+    })
+
+});
+
+// Cancel Friend Request
+router.post("/cancelrequest/:studentID/:requestedStudentID", async (req, res) => {
+
+    await Students.findById(req.params.studentID).then(async student => {
+
+        if (student) {
+
+            const findStudentRequested = Students.findById(req.params.requestedStudentID);
+
+            if (!findStudentRequested) {
+                res.status(400).json({ message: "Requested student was not found" });
+                return;
+            }
+
+            const findUserInRequestsSent = await Students.find(
+                {
+                    _id: req.params.studentID,
+                    requestsSent: { $elemMatch: { studentID: req.params.requestedStudentID } }
+                }
+            );
+
+            if (findUserInRequestsSent.length < 1) {
+                res.status(400).json({ message: "No requests found to cancel" });
+                return;
+            }
+
+            try {
+
+                // To save info in requested students friends array
+                const deleteFriendRequests = await Students.findOneAndUpdate(
+                    { _id: req.params.studentID },
+                    { $pull: { 'requestsSent': { studentID: req.params.requestedStudentID } } });
+
+                // To save info in students friends array
+                const deleteRequestsSent = await Students.findOneAndUpdate(
+                    { _id: req.params.requestedStudentID },
+                    { $pull: { 'friendRequests': { studentID: req.params.studentID } } });
+
+                res.status(200).json({ message: "Friend Request Canceled Successfully" });
+
+            } catch (error) {
+                res.status(400).json({ message: error.message });
+
+            }
+
+            return;
+        }
+        res.status(404).json({ message: "Student was not found" });
+        return;
+    }).catch((error) => {
+        res.status(500).json({ message: "Something went wrong" });
+
+    })
+
+});
 
 // // Update personal information
 // router.post("/update/personalinformation/:customerID", async (req, res) => {
