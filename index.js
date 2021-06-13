@@ -30,7 +30,7 @@ const PORT = process.env.PORT || 3000;
 require('dotenv').config();
 
 // Importing the routes
-// const retailCustomerRoute = require('./routes/retailCustomer');
+const students = require('./routes/students');
 // const subscriberRoute = require('./routes/subscriber');
 // const kitchenRoute = require('./routes/kitchen');
 
@@ -41,7 +41,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-// app.use('/api/retailcustomer', retailCustomerRoute);
+app.use('/api/students', students);
 // app.use('/api/subscriber', subscriberRoute);
 // app.use('/api/kitchen', kitchenRoute);
 
@@ -56,4 +56,9 @@ mongoose.connect(process.env.MONGO_URL, { useNewUrlParser: true }).then(() => {
 app.listen(PORT, () => {
     console.log("Server started at port", PORT);
 })
+
+// Will catch any uncaught exeption. 
+process.on('uncaughtException', function (error) {
+    console.log(error);
+});
 
