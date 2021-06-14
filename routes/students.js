@@ -49,7 +49,8 @@ router.post("/signup", async (req, res) => {
         degreeTitle: req.body.degreeTitle,
         isApproved: false,
         verificationCode: "",
-        phoneNumber: req.body.phoneNumber
+        phoneNumber: req.body.phoneNumber,
+        profilePicture: req.body.profilePicture
     });
 
     // To check if email exists in tables 
@@ -114,7 +115,26 @@ router.get("/:studentID", async (req, res) => {
     await Students.findById(req.params.studentID).then(async student => {
         if (student) {
 
-            res.json({ message: "Success", data: student });
+            let findFriends = [];
+            let findfriendRequests = [];
+            let requestsSent = [];
+
+            for (let i = 0; i < student.friends.length; i++) {
+                let friendList = await Students.findById(student.friends[i].studentID);
+                findFriends.push(friendList);
+            }
+
+            for (let i = 0; i < student.friendRequests.length; i++) {
+                let friendList = await Students.findById(student.friendRequests[i].studentID);
+                findfriendRequests.push(friendList);
+            }
+
+            for (let i = 0; i < student.requestsSent.length; i++) {
+                let friendList = await Students.findById(student.requestsSent[i].studentID);
+                requestsSent.push(friendList);
+            }
+
+            res.status(200).json({ message: "Success", data: { student: student, friends: findFriends, friendRequests: findfriendRequests, requestsSent: requestsSent } });
             return;
 
         }
@@ -134,7 +154,6 @@ router.post("/login", async (req, res) => {
         // checking user password with hashed password stored in the database
         const validPassword = await bcrypt.compare(body.password, student.password);
 
-
         if (validPassword) {
 
             // var token = jwt.sign(
@@ -146,7 +165,33 @@ router.post("/login", async (req, res) => {
             // res.json({ message: "Success", data: { retailCustomer: retailCustomer, retailCustomerDetails: retailCustomerDetails, token: token } });
             // return;
 
-            res.status(200).json({ message: "Login successfully", data: student });
+            // Data required to response for shoaib
+            let findFriends = [];
+            let findfriendRequests = [];
+            let requestsSent = [];
+
+            for (let i = 0; i < student.friends.length; i++) {
+                let friendList = await Students.findById(student.friends[i].studentID);
+                findFriends.push(friendList);
+            }
+
+            for (let i = 0; i < student.friendRequests.length; i++) {
+                let friendList = await Students.findById(student.friendRequests[i].studentID);
+                findfriendRequests.push(friendList);
+            }
+
+            for (let i = 0; i < student.requestsSent.length; i++) {
+                let friendList = await Students.findById(student.requestsSent[i].studentID);
+                requestsSent.push(friendList);
+            }
+
+            // console.log("From here");
+            // console.log(findFriends);
+            // console.log(findfriendRequests);
+            // console.log(requestsSent);
+
+            res.status(200).json({ message: "Login successfully", data: { student: student, friends: findFriends, friendRequests: findfriendRequests, requestsSent: requestsSent } });
+            // res.status(200).json({ message: "Login successfully", data: student });
             return;
 
 

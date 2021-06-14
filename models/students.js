@@ -62,6 +62,9 @@ const StudentsSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    profilePicture: {
+        type: String
+    },
     friends: [                             // Contains all friends including the ones whom I have requested
         {
             studentID: { type: String },
